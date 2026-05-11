@@ -4,6 +4,7 @@ import { saveDiagnosis } from './storage';
 import { recordSpend } from './budget';
 import { parseActualCostCents, estimateCostCents } from './cost';
 import { llmError, schemaError } from './errors';
+import { selectRelevantModes, type FailureMode } from './referenceData';
 import type { OpenRouterCallArgs, OpenRouterCallResult } from './openrouter';
 import { callOpenRouter as defaultCallOpenRouter } from './openrouter';
 import type { DiagnosisResult } from './types';
@@ -13,18 +14,34 @@ export type RunDiagnoseArgs = {
   ipHash: string;
   photoDataUrl: string;
   freeformText: string;
+  modelField: string;
+  errorCode: string;
   apiKey: string;
   model: string;
   maxOutputTokens: number;
-  // Injectable for tests:
   callOpenRouter?: (args: OpenRouterCallArgs) => Promise<OpenRouterCallResult>;
 };
 
 export type RunDiagnoseResult = { id: string; result: DiagnosisResult };
 
+// Heuristic: derive a category hint from freeform text and the model field.
+// Pure function, no LLM cost.
+function deriveCategoryHint(freeform: string, modelField: string): FailureMode['category'] | 'unknown' {
+  const text = `${freeform} ${modelField}`.toLowerCase();
+  if (/dishwasher/.test(text)) return 'dishwasher';
+  if (/washer|washing machine/.test(text)) return 'washer';
+  if (/dryer/.test(text)) return 'dryer';
+  if (/fridge|refrigerator/.test(text)) return 'refrigerator';
+  if (/oven|range|stove/.test(text)) return 'oven';
+  return 'unknown';
+}
+
 export async function runDiagnose(args: RunDiagnoseArgs): Promise<RunDiagnoseResult> {
   const call = args.callOpenRouter ?? defaultCallOpenRouter;
-  const systemPrompt = buildSystemPrompt();
+  const categoryHint = deriveCategoryHint(args.freeformText, args.modelField);
+  const errorCodeForSelector = args.errorCode.trim().length > 0 ? args.errorCode : null;
+  const referenceModes = selectRelevantModes(categoryHint, errorCodeForSelector);
+  const systemPrompt = buildSystemPrompt(referenceModes);
 
   let lastUsage: OpenRouterCallResult['usage'];
   let parsed: DiagnosisResult | null = null;
@@ -36,7 +53,13 @@ export async function runDiagnose(args: RunDiagnoseArgs): Promise<RunDiagnoseRes
         apiKey: args.apiKey,
         model: args.model,
         systemPrompt,
-        userContent: buildUserContent(args.photoDataUrl, args.freeformText, { retry: attempt > 0 }),
+        userContent: buildUserContent(
+          args.photoDataUrl,
+          args.freeformText,
+          args.modelField,
+          args.errorCode,
+          { retry: attempt > 0 }
+        ),
         maxOutputTokens: args.maxOutputTokens
       });
     } catch (e) {
@@ -51,16 +74,13 @@ export async function runDiagnose(args: RunDiagnoseArgs): Promise<RunDiagnoseRes
       if (!(e instanceof ParseError) || attempt === 1) {
         throw schemaError();
       }
-      // attempt 0 fails → loop continues with retry: true
     }
   }
 
   if (!parsed) throw schemaError();
 
-  // Overwrite meta with server-known values.
   parsed.meta = { model: args.model, createdAt: new Date().toISOString() };
 
-  // Record spend (best-effort; non-blocking failures are tolerable).
   const costCents = parseActualCostCents({ usage: lastUsage }) ?? estimateCostCents(
     args.model,
     lastUsage?.prompt_tokens ?? 1500,
