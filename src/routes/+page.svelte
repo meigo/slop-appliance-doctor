@@ -1,28 +1,16 @@
 <script lang="ts">
-  import { compressPhoto, type CompressedPhoto } from '$lib/photoCompress';
   import { onMount } from 'svelte';
   import { PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public';
+  import { compressPhoto, type CompressedPhoto } from '$lib/photoCompress';
 
   let photo: CompressedPhoto | null = $state(null);
   let photoError = $state<string | null>(null);
   let text = $state('');
+  let modelField = $state('');
+  let errorCode = $state('');
   let submitting = $state(false);
   let formError = $state<string | null>(null);
   let turnstileToken = $state<string | null>(null);
-
-  onMount(() => {
-    const render = () => {
-      if (!window.turnstile) return;
-      window.turnstile.render('#turnstile-container', {
-        sitekey: PUBLIC_TURNSTILE_SITE_KEY,
-        callback: (token) => { turnstileToken = token; },
-        'error-callback': () => { turnstileToken = null; },
-        'expired-callback': () => { turnstileToken = null; }
-      });
-    };
-    if (window.turnstile) render();
-    else window.onTurnstileLoad = render;
-  });
 
   async function handlePhotoChange(e: Event) {
     photoError = null;
@@ -56,8 +44,10 @@
     submitting = true;
     try {
       const fd = new FormData();
-      fd.append('photo', photo.blob, 'plant.jpg');
+      fd.append('photo', photo.blob, 'appliance.jpg');
       fd.append('text', text);
+      fd.append('modelField', modelField);
+      fd.append('errorCode', errorCode);
       fd.append('turnstileToken', turnstileToken);
 
       const res = await fetch('/api/diagnose', { method: 'POST', body: fd });
@@ -74,22 +64,36 @@
       submitting = false;
     }
   }
+
+  onMount(() => {
+    const render = () => {
+      if (!window.turnstile) return;
+      window.turnstile.render('#turnstile-container', {
+        sitekey: PUBLIC_TURNSTILE_SITE_KEY,
+        callback: (token) => { turnstileToken = token; },
+        'error-callback': () => { turnstileToken = null; },
+        'expired-callback': () => { turnstileToken = null; }
+      });
+    };
+    if (window.turnstile) render();
+    else window.onTurnstileLoad = render;
+  });
 </script>
 
 <svelte:head>
-  <title>Plant Doctor</title>
-  <meta name="description" content="Photo + a few words. Get a plant diagnosis." />
+  <title>Appliance Troubleshooter</title>
+  <meta name="description" content="Photo + a few words. Get an appliance diagnosis." />
 </svelte:head>
 
 <header style="margin-bottom: 2rem;">
-  <h1 style="margin: 0 0 0.25rem;">Plant Doctor</h1>
+  <h1 style="margin: 0 0 0.25rem;">Appliance Troubleshooter</h1>
   <p style="margin: 0; color: var(--muted);">Photo + a few words. Get a diagnosis.</p>
 </header>
 
 <form onsubmit={handleSubmit}>
   <div class="photo-section">
     {#if photo}
-      <img src={photo.dataUrl} alt="Selected plant" style="max-width: 100%; border-radius: 6px;" />
+      <img src={photo.dataUrl} alt="Selected appliance" style="max-width: 100%; border-radius: 6px;" />
       <button type="button" onclick={clearPhoto} style="margin-top: 0.5rem; background: none; border: none; color: var(--muted); text-decoration: underline; padding: 0;">
         Replace photo
       </button>
@@ -113,14 +117,35 @@
   <div style="margin-top: 1rem;">
     <textarea
       bind:value={text}
-      placeholder="What's wrong? Any context? (optional)"
+      placeholder="What's it doing? When did it start?"
       maxlength="2000"
       rows="3"
       style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; font: inherit;"
     ></textarea>
   </div>
 
-  <!-- Turnstile widget injected in Task 23 -->
+  <div style="margin-top: 0.75rem;">
+    <label style="font-size: 0.8rem; color: var(--muted);">Make / model / serial <span style="font-weight: normal;">(optional)</span></label>
+    <input
+      type="text"
+      bind:value={modelField}
+      placeholder="Whirlpool WDT780SAEM"
+      maxlength="200"
+      style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font: inherit; margin-top: 0.25rem;"
+    />
+  </div>
+
+  <div style="margin-top: 0.75rem;">
+    <label style="font-size: 0.8rem; color: var(--muted);">Error code on display <span style="font-weight: normal;">(optional)</span></label>
+    <input
+      type="text"
+      bind:value={errorCode}
+      placeholder="LE, F21, dE"
+      maxlength="50"
+      style="width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font: 14px ui-monospace, monospace; margin-top: 0.25rem;"
+    />
+  </div>
+
   <div id="turnstile-container" style="margin-top: 1rem;"></div>
 
   {#if formError}
