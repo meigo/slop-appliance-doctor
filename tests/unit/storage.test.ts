@@ -4,8 +4,14 @@ import { makeKvMock } from '../support/kvMock';
 import type { DiagnosisResult } from '../../src/lib/types';
 
 const sample: DiagnosisResult = {
-  species: { name: 'Monstera deliciosa', confidence: 0.9 },
-  primary: { name: 'Overwatering', confidence: 0.7, rationale: 'r', recovery: [] },
+  appliance: { category: 'dishwasher', make: 'Whirlpool', model: 'WDT780', confidence: 0.9 },
+  primary: {
+    name: 'Drain pump failure',
+    confidence: 0.7,
+    rationale: 'r',
+    recovery: { diy: [], callPro: false },
+    parts: []
+  },
   alternatives: [],
   whatWouldChangeMyMind: [],
   meta: { model: 'qwen/qwen-2.5-vl-72b-instruct', createdAt: '2026-05-11T10:00:00Z' }
@@ -19,7 +25,7 @@ describe('storage', () => {
     const raw = await kv.get(KEY_PREFIX + id);
     expect(raw).not.toBeNull();
     const stored = JSON.parse(raw!);
-    expect(stored.result.species?.name).toBe('Monstera deliciosa');
+    expect(stored.result.appliance?.make).toBe('Whirlpool');
     expect(stored.createdAt).toBeDefined();
   });
 
@@ -32,6 +38,6 @@ describe('storage', () => {
     const kv = makeKvMock();
     const id = await saveDiagnosis(kv, sample);
     const stored = await loadDiagnosis(kv, id);
-    expect(stored?.result.species?.name).toBe('Monstera deliciosa');
+    expect(stored?.result.appliance?.make).toBe('Whirlpool');
   });
 });

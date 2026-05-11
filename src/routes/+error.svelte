@@ -3,11 +3,11 @@
 </script>
 
 <svelte:head>
-  <title>Plant Doctor — {page.status}</title>
+  <title>Appliance Troubleshooter — {page.status}</title>
 </svelte:head>
 
 <header style="margin-bottom: 1.5rem;">
-  <a href="/" style="color: var(--muted); text-decoration: none;">← Plant Doctor</a>
+  <a href="/" style="color: var(--muted); text-decoration: none;">← Appliance Troubleshooter</a>
 </header>
 
 <h1>{page.status === 404 ? "Diagnosis not found" : "Something went wrong"}</h1>
@@ -19,5 +19,5 @@
 {/if}
 
 <a href="/" class="button-primary" style="display: inline-block; text-align: center; text-decoration: none; margin-top: 1rem;">
-  Diagnose a new plant
+  Diagnose a new appliance
 </a>
