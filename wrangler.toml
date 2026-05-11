@@ -9,8 +9,8 @@ binding = "ASSETS"
 
 [[kv_namespaces]]
 binding = "DIAGNOSES"
-id = "7ed359c429394c9e99c640e7392054f9"
-preview_id = "fe02ca19ea4c4f309676abd2b50b709c"
+id = "514f217292444a5690404aa741bdbe5c"
+preview_id = "e5830e3bc46d430487a17fd5badf6dc0"
 
 [vars] 
 OPENROUTER_MODEL = "qwen/qwen-2.5-vl-72b-instruct"
