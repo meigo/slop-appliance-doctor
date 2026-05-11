@@ -1,21 +1,43 @@
-// Core types for diagnoses.
+// Core types for appliance diagnoses.
 
-export type Species = {
-  name: string;
+export type ApplianceCategory =
+  | 'dishwasher'
+  | 'washer'
+  | 'dryer'
+  | 'refrigerator'
+  | 'oven'
+  | 'other';
+
+export type Appliance = {
+  category: ApplianceCategory;
+  make: string | null;
+  model: string | null;
   confidence: number;
-  commonNames?: string[];
 };
 
 export type RecoveryStep = {
   action: string;
-  when: string;
+  difficulty: 'easy' | 'moderate' | 'advanced';
+};
+
+export type Recovery = {
+  diy: RecoveryStep[];
+  callPro: boolean;
+  proReason?: string;
+};
+
+export type Part = {
+  name: string;
+  partNumber?: string;
+  typicalCostUsd?: string;
 };
 
 export type PrimaryDiagnosis = {
   name: string;
   confidence: number;
   rationale: string;
-  recovery: RecoveryStep[];
+  recovery: Recovery;
+  parts: Part[];
 };
 
 export type AlternativeDiagnosis = {
@@ -24,8 +46,10 @@ export type AlternativeDiagnosis = {
   rationale: string;
 };
 
+// Keep the exported name `DiagnosisResult` — this minimizes import-site churn
+// vs slop-plant-doctor while keeping schemas independent.
 export type DiagnosisResult = {
-  species: Species | null;
+  appliance: Appliance | null;
   primary: PrimaryDiagnosis;
   alternatives: AlternativeDiagnosis[];
   whatWouldChangeMyMind: string[];
@@ -35,13 +59,12 @@ export type DiagnosisResult = {
   };
 };
 
-// Server-side wrapper stored in KV.
 export type StoredDiagnosis = {
   result: DiagnosisResult;
   createdAt: string;
 };
 
-// HTTP error codes the API can return — mapped to user-facing copy on the client.
+// Inherited verbatim from slop-plant-doctor — same 10 codes.
 export type ApiErrorCode =
   | 'turnstile_failed'
   | 'rate_limited'
