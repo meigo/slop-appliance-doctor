@@ -1,0 +1,21 @@
+{
+  "appliance": { "category": "dishwasher", "make": "Whirlpool", "model": "WDT780SAEM", "confidence": 0.9 },
+  "primary": {
+    "name": "Drain pump failure",
+    "confidence": 0.75,
+    "rationale": "Standing water and humming from drain area.",
+    "recovery": {
+      "diy": [
+        { "action": "Disconnect power", "difficulty": "easy" },
+        { "action": "Remove kick panel and access pump", "difficulty": "moderate" }
+      ],
+      "callPro": false
+    },
+    "parts": [{ "name": "drain pump", "partNumber": "W10348269", "typicalCostUsd": "$45-80" }]
+  },
+  "alternatives": [
+    { "name": "Clogged drain hose", "confidence": 0.15, "rationale": "Less likely given humming." }
+  ],
+  "whatWouldChangeMyMind": ["Check the drain pump filter for clogs."],
+  "meta": { "model": "qwen/qwen-2.5-vl-72b-instruct", "createdAt": "2026-05-11T10:00:00Z" }
+}

@@ -1,0 +1,1 @@
+{"appliance":{"category":"toaster","make":null,"model":null,"confidence":0.5},"primary":{}}

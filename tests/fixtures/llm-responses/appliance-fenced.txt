@@ -1,0 +1,3 @@
+```json
+{"appliance":null,"primary":{"name":"Heating element failure","confidence":0.7,"rationale":"Drum turns but no heat.","recovery":{"diy":[{"action":"check","difficulty":"easy"}],"callPro":false},"parts":[]},"alternatives":[],"whatWouldChangeMyMind":[],"meta":{"model":"google/gemini-2.5-flash","createdAt":"2026-05-11T10:00:00Z"}}
+```
