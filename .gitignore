@@ -1,0 +1,35 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Project-specific
+.dev.vars
+tests/fixtures/plant-photos/*
+!tests/fixtures/plant-photos/.gitignore
+quality-reports/
+
+# Playwright output
+test-results/
+playwright-report/
+
+/temp/
