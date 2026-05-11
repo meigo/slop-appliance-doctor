@@ -1,21 +1,37 @@
 import { z } from 'zod';
 
-const SpeciesSchema = z.object({
-  name: z.string().min(1),
-  confidence: z.number().min(0).max(1),
-  commonNames: z.array(z.string()).optional()
+const ApplianceCategoryEnum = z.enum(['dishwasher', 'washer', 'dryer', 'refrigerator', 'oven', 'other']);
+
+const ApplianceSchema = z.object({
+  category: ApplianceCategoryEnum,
+  make: z.string().min(1).nullable(),
+  model: z.string().min(1).nullable(),
+  confidence: z.number().min(0).max(1)
 });
 
 const RecoveryStepSchema = z.object({
   action: z.string().min(1),
-  when: z.string().min(1)
+  difficulty: z.enum(['easy', 'moderate', 'advanced'])
+});
+
+const RecoverySchema = z.object({
+  diy: z.array(RecoveryStepSchema),
+  callPro: z.boolean(),
+  proReason: z.string().optional()
+});
+
+const PartSchema = z.object({
+  name: z.string().min(1),
+  partNumber: z.string().optional(),
+  typicalCostUsd: z.string().optional()
 });
 
 const PrimaryDiagnosisSchema = z.object({
   name: z.string().min(1),
   confidence: z.number().min(0).max(1),
   rationale: z.string().min(1),
-  recovery: z.array(RecoveryStepSchema)
+  recovery: RecoverySchema,
+  parts: z.array(PartSchema)
 });
 
 const AlternativeDiagnosisSchema = z.object({
@@ -25,7 +41,7 @@ const AlternativeDiagnosisSchema = z.object({
 });
 
 export const DiagnosisResultSchema = z.object({
-  species: SpeciesSchema.nullable(),
+  appliance: ApplianceSchema.nullable(),
   primary: PrimaryDiagnosisSchema,
   alternatives: z.array(AlternativeDiagnosisSchema),
   whatWouldChangeMyMind: z.array(z.string()),
