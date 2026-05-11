@@ -1,4 +1,7 @@
 <script lang="ts">
+  import PageHeader from '$lib/components/PageHeader.svelte';
+  import Pill from '$lib/components/Pill.svelte';
+
   const result = {
     appliance: { category: 'dishwasher', make: 'Whirlpool', model: 'WDT780SAEM', confidence: 0.88 },
     primary: {
@@ -30,84 +33,80 @@
     meta: { model: 'qwen/qwen-2.5-vl-72b-instruct', createdAt: '2026-05-11T10:00:00Z' }
   };
 
-  const created = new Date(result.meta.createdAt);
   const pct = (n: number) => `${Math.round(n * 100)}%`;
-  const difficultyColor = (d: 'easy' | 'moderate' | 'advanced') =>
-    d === 'easy' ? '#d4e8d8' : d === 'moderate' ? '#fde7c0' : '#fad0c8';
 </script>
 
 <svelte:head>
   <title>Example diagnosis — Appliance Troubleshooter</title>
 </svelte:head>
 
-<header style="margin-bottom: 1.5rem;">
-  <a href="/" style="color: var(--muted); text-decoration: none;">← Appliance Troubleshooter</a>
-  <p style="margin: 0.5rem 0 0; color: var(--muted); font-size: 0.85rem;">This is a static example, not a real diagnosis.</p>
-</header>
+<PageHeader>Appliance Troubleshooter</PageHeader>
 
-<section style="margin-bottom: 1.5rem;">
-  <p style="margin: 0; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Appliance</p>
-  <h2 style="margin: 0;">{result.appliance.make} {result.appliance.model}
-    <span style="color: var(--muted); font-weight: normal; font-size: 0.85rem;">· {pct(result.appliance.confidence)}</span>
+<p class="text-muted text-sm mb-6">This is a static example, not a real diagnosis.</p>
+
+<section class="mb-6">
+  <p class="text-xs uppercase tracking-wider text-muted m-0">Appliance</p>
+  <h2 class="text-lg font-semibold tracking-tight m-0">
+    {result.appliance.make} {result.appliance.model}
+    <span class="text-muted font-normal text-sm">· {pct(result.appliance.confidence)}</span>
   </h2>
-  <p style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem;">{result.appliance.category}</p>
+  <p class="text-muted text-sm mt-1">{result.appliance.category}</p>
 </section>
 
-<section style="margin-bottom: 1.5rem; border-left: 3px solid var(--accent); padding-left: 1rem;">
-  <p style="margin: 0; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Primary diagnosis</p>
-  <h2 style="margin: 0;">{result.primary.name}
-    <span style="color: var(--muted); font-weight: normal; font-size: 0.85rem;">· {pct(result.primary.confidence)}</span>
+<section class="mb-6 border-l-2 border-fg pl-4">
+  <p class="text-xs uppercase tracking-wider text-muted m-0">Primary diagnosis</p>
+  <h2 class="text-lg font-semibold tracking-tight m-0">
+    {result.primary.name}
+    <span class="text-muted font-normal text-sm">· {pct(result.primary.confidence)}</span>
   </h2>
-  <p>{result.primary.rationale}</p>
+  <p class="mt-2">{result.primary.rationale}</p>
 </section>
 
-<section style="margin-bottom: 1.5rem;">
-  <p style="margin: 0 0 0.5rem; font-weight: 600;">DIY steps</p>
-  <ol style="margin: 0; padding-left: 1.2rem;">
+<section class="mb-6">
+  <p class="font-semibold mb-2">DIY steps</p>
+  <ol class="m-0 pl-5 list-decimal space-y-1">
     {#each result.primary.recovery.diy as step}
-      <li style="margin-bottom: 0.3rem;">
+      <li>
         {step.action}
-        <span style="font-size: 0.7rem; padding: 0.1rem 0.5rem; background: {difficultyColor(step.difficulty)}; border-radius: 10px; margin-left: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em;">
-          {step.difficulty}
-        </span>
+        <span class="ml-1.5"><Pill variant={step.difficulty}>{step.difficulty}</Pill></span>
       </li>
     {/each}
   </ol>
 </section>
 
-<section style="margin-bottom: 1.5rem;">
-  <p style="margin: 0 0 0.5rem; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Parts</p>
+<section class="mb-6">
+  <p class="text-xs uppercase tracking-wider text-muted mb-2">Parts</p>
   {#each result.primary.parts as part}
-    <div style="margin: 0.2rem 0;">
+    <div class="my-1">
       <strong>{part.name}</strong>
-      <span style="font-family: ui-monospace, monospace; color: var(--muted); margin-left: 0.5rem;">{part.partNumber}</span>
-      <span style="color: var(--muted); margin-left: 0.5rem;">{part.typicalCostUsd}</span>
+      <span class="font-mono text-muted ml-2">{part.partNumber}</span>
+      <span class="text-muted ml-2">{part.typicalCostUsd}</span>
     </div>
   {/each}
 </section>
 
-<section style="margin-bottom: 1.5rem;">
-  <p style="margin: 0 0 0.5rem; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Alternatives</p>
+<section class="mb-6">
+  <p class="text-xs uppercase tracking-wider text-muted mb-2">Alternatives</p>
   {#each result.alternatives as alt}
-    <p style="margin: 0.3rem 0;"><strong>{alt.name}</strong> <span style="color: var(--muted);">· {pct(alt.confidence)}</span> — {alt.rationale}</p>
+    <p class="my-1"><strong>{alt.name}</strong> <span class="text-muted">· {pct(alt.confidence)}</span> — {alt.rationale}</p>
   {/each}
 </section>
 
-<section style="margin-bottom: 1.5rem;">
-  <p style="margin: 0 0 0.5rem; color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">What would change my mind</p>
-  <ul style="margin: 0; padding-left: 1.2rem;">
+<section class="mb-6">
+  <p class="text-xs uppercase tracking-wider text-muted mb-2">What would change my mind</p>
+  <ul class="m-0 pl-5 list-disc">
     {#each result.whatWouldChangeMyMind as check}
       <li>{check}</li>
     {/each}
   </ul>
 </section>
 
-<footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem;">
+<footer class="mt-8 pt-4 border-t border-line text-muted text-sm">
   Example · {result.meta.model}
 </footer>
 
-<div style="margin-top: 1.5rem;">
-  <a href="/" class="button-primary" style="display: inline-block; text-align: center; text-decoration: none;">
+<div class="mt-6">
+  <a href="/" class="btn-primary text-center no-underline">
     Diagnose your appliance
   </a>
 </div>
