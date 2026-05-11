@@ -1,23 +1,26 @@
 // Manual quality runner. Run with: npm run quality
-// Reads tests/fixtures/plant-photos.manifest.json + tests/fixtures/plant-photos/
-// Calls OpenRouter for each fixture, writes a report to quality-reports/<timestamp>.md
+// Reads tests/fixtures/appliance-photos.manifest.json + tests/fixtures/appliance-photos/.
+// Calls OpenRouter for each fixture, writes a report to quality-reports/<timestamp>.md.
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { callOpenRouter } from '../src/lib/openrouter';
 import { buildSystemPrompt, buildUserContent } from '../src/lib/prompt';
 import { parseDiagnosisResponse } from '../src/lib/parser';
+import { selectRelevantModes, type FailureMode } from '../src/lib/referenceData';
 
 type Fixture = {
   id: string;
   file: string;
   freeformText: string;
+  modelField: string;
+  errorCode: string;
   expected: {
-    speciesContains?: string;
+    category?: FailureMode['category'];
     primaryCategory: string;
     primaryCategoryAlternatives?: string[];
+    callPro?: boolean;
   };
-  notes?: string;
 };
 
 const apiKey = process.env.OPENROUTER_API_KEY;
@@ -27,8 +30,8 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const manifestPath = 'tests/fixtures/plant-photos.manifest.json';
-const photosDir = 'tests/fixtures/plant-photos';
+const manifestPath = 'tests/fixtures/appliance-photos.manifest.json';
+const photosDir = 'tests/fixtures/appliance-photos';
 const reportsDir = 'quality-reports';
 
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { fixtures: Fixture[] };
@@ -44,14 +47,26 @@ function matches(actual: string, expected: string): boolean {
   return actual.toLowerCase().includes(expected.toLowerCase());
 }
 
+function deriveCategoryHint(freeform: string, modelField: string): FailureMode['category'] | 'unknown' {
+  const t = `${freeform} ${modelField}`.toLowerCase();
+  if (/dishwasher/.test(t)) return 'dishwasher';
+  if (/washer|washing machine/.test(t)) return 'washer';
+  if (/dryer/.test(t)) return 'dryer';
+  if (/fridge|refrigerator/.test(t)) return 'refrigerator';
+  if (/oven|range|stove/.test(t)) return 'oven';
+  return 'unknown';
+}
+
 async function run() {
   if (!existsSync(reportsDir)) mkdirSync(reportsDir, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const reportPath = join(reportsDir, `${stamp}.md`);
 
   let report = `# Quality run ${stamp}\n\nModel: \`${model}\`\n\n`;
-  let speciesMatches = 0;
   let categoryMatches = 0;
+  let primaryMatches = 0;
+  let callProMatches = 0;
+  let callProRelevant = 0;
   let total = 0;
 
   for (const fx of manifest.fixtures) {
@@ -63,14 +78,17 @@ async function run() {
     total++;
 
     const dataUrl = await loadAsDataUrl(photoPath);
+    const categoryHint = deriveCategoryHint(fx.freeformText, fx.modelField);
+    const refModes = selectRelevantModes(categoryHint, fx.errorCode || null);
+
     let result;
     try {
       const raw = await callOpenRouter({
         apiKey: apiKey!,
         model,
-        systemPrompt: buildSystemPrompt(),
-        userContent: buildUserContent(dataUrl, fx.freeformText),
-        maxOutputTokens: 1500
+        systemPrompt: buildSystemPrompt(refModes),
+        userContent: buildUserContent(dataUrl, fx.freeformText, fx.modelField, fx.errorCode),
+        maxOutputTokens: 2000
       });
       result = parseDiagnosisResponse(raw.content);
     } catch (e) {
@@ -78,33 +96,42 @@ async function run() {
       continue;
     }
 
-    const speciesOk = !fx.expected.speciesContains
-      || (result.species && matches(result.species.name, fx.expected.speciesContains));
-    const categoryHits = [fx.expected.primaryCategory, ...(fx.expected.primaryCategoryAlternatives ?? [])];
-    const categoryOk = categoryHits.some(c => matches(result.primary.name, c));
+    const categoryOk = !fx.expected.category || result.appliance?.category === fx.expected.category;
+    const primaryHits = [fx.expected.primaryCategory, ...(fx.expected.primaryCategoryAlternatives ?? [])];
+    const primaryOk = primaryHits.some(c => matches(result.primary.name, c));
 
-    if (speciesOk) speciesMatches++;
+    let callProOk: boolean | null = null;
+    if (typeof fx.expected.callPro === 'boolean') {
+      callProRelevant++;
+      callProOk = result.primary.recovery.callPro === fx.expected.callPro;
+      if (callProOk) callProMatches++;
+    }
+
     if (categoryOk) categoryMatches++;
+    if (primaryOk) primaryMatches++;
 
     report += `## ${fx.id}\n\n`;
-    report += `Species: ${result.species?.name ?? 'null'} (${speciesOk ? 'OK' : 'MISS'})\n`;
-    report += `Primary: ${result.primary.name} @ ${Math.round(result.primary.confidence * 100)}% (${categoryOk ? 'OK' : 'MISS'})\n`;
+    report += `Appliance: ${result.appliance?.category ?? 'null'} (${categoryOk ? 'OK' : 'MISS'})\n`;
+    report += `Primary: ${result.primary.name} @ ${Math.round(result.primary.confidence * 100)}% (${primaryOk ? 'OK' : 'MISS'})\n`;
+    report += `callPro: ${result.primary.recovery.callPro}${callProOk === null ? '' : ' (' + (callProOk ? 'OK' : 'MISS') + ')'}\n`;
     report += `Rationale: ${result.primary.rationale}\n\n`;
-    if (result.primary.recovery.length > 0) {
-      report += `Recovery:\n`;
-      for (const s of result.primary.recovery) report += `- ${s.action} — ${s.when}\n`;
+    if (result.primary.recovery.diy.length > 0) {
+      report += `DIY:\n`;
+      for (const s of result.primary.recovery.diy) report += `- [${s.difficulty}] ${s.action}\n`;
+    }
+    if (result.primary.parts.length > 0) {
+      report += `\nParts:\n`;
+      for (const p of result.primary.parts) report += `- ${p.name}${p.partNumber ? ` (${p.partNumber})` : ''}${p.typicalCostUsd ? ` ${p.typicalCostUsd}` : ''}\n`;
     }
     report += `\n---\n\n`;
   }
 
-  report = report.replace(
-    'Model:',
-    `Species match: ${speciesMatches}/${total} (${total > 0 ? Math.round(speciesMatches/total*100) : 0}%)\nCategory match: ${categoryMatches}/${total} (${total > 0 ? Math.round(categoryMatches/total*100) : 0}%)\n\nModel:`
-  );
+  const summary = `Category match: ${categoryMatches}/${total} (${total > 0 ? Math.round(categoryMatches/total*100) : 0}%)\nPrimary match: ${primaryMatches}/${total} (${total > 0 ? Math.round(primaryMatches/total*100) : 0}%)\ncallPro correctness: ${callProMatches}/${callProRelevant} (${callProRelevant > 0 ? Math.round(callProMatches/callProRelevant*100) : 0}%)\n\n`;
+  report = report.replace('Model:', summary + 'Model:');
 
   writeFileSync(reportPath, report);
   console.log(`Report written to ${reportPath}`);
-  console.log(`Species: ${speciesMatches}/${total} · Category: ${categoryMatches}/${total}`);
+  console.log(summary);
 }
 
 run().catch(e => { console.error(e); process.exit(1); });

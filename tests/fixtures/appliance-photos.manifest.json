@@ -1,0 +1,75 @@
+{
+  "fixtures": [
+    {
+      "id": "dishwasher-drain-pump-1",
+      "file": "dishwasher-drain-pump-1.jpg",
+      "freeformText": "water remains in tub after cycle",
+      "modelField": "",
+      "errorCode": "LE",
+      "expected": {
+        "category": "dishwasher",
+        "primaryCategory": "drain pump",
+        "primaryCategoryAlternatives": ["drain", "pump"]
+      }
+    },
+    {
+      "id": "washer-drain-pump-1",
+      "file": "washer-drain-pump-1.jpg",
+      "freeformText": "won't drain, water stuck in drum",
+      "modelField": "LG WM3900",
+      "errorCode": "OE",
+      "expected": {
+        "category": "washer",
+        "primaryCategory": "drain pump",
+        "primaryCategoryAlternatives": ["drain", "pump"]
+      }
+    },
+    {
+      "id": "dryer-heating-element-1",
+      "file": "dryer-heating-element-1.jpg",
+      "freeformText": "drum turns but no heat",
+      "modelField": "",
+      "errorCode": "",
+      "expected": {
+        "category": "dryer",
+        "primaryCategory": "heating element",
+        "primaryCategoryAlternatives": ["element", "heat"],
+        "callPro": false
+      }
+    },
+    {
+      "id": "fridge-compressor-1",
+      "file": "fridge-compressor-1.jpg",
+      "freeformText": "both fridge and freezer warm, compressor running",
+      "modelField": "",
+      "errorCode": "",
+      "expected": {
+        "category": "refrigerator",
+        "primaryCategory": "compressor",
+        "primaryCategoryAlternatives": ["sealed system", "refrigerant"],
+        "callPro": true
+      }
+    },
+    {
+      "id": "oven-igniter-gas-1",
+      "file": "oven-igniter-gas-1.jpg",
+      "freeformText": "gas oven not heating, igniter glows weakly",
+      "modelField": "",
+      "errorCode": "",
+      "expected": {
+        "category": "oven",
+        "primaryCategory": "igniter",
+        "primaryCategoryAlternatives": ["gas valve", "ignition"],
+        "callPro": true
+      }
+    }
+  ],
+  "instructions": "Add ~20–25 fixtures across the 5 categories (target 4–5 per category). Source photos from r/fixit posts (with permission), iFixit failure-mode galleries (CC-licensed where applicable), and personal appliances. Each fixture file lives in tests/fixtures/appliance-photos/ (gitignored).",
+  "fixturePrep": {
+    "filename": "Use neutral filenames (fixture-001.jpg). Filenames don't reach the LLM in the live app, but neutral names prevent reviewer bias.",
+    "visibleText": "Crop out manufacturer labels, model stickers, repair-shop watermarks, and any visible text — UNLESS the fixture specifically tests 'with visible model sticker' (in which case freeformText/modelField should leave that field blank to test pure visual ID).",
+    "freeformText": "Use neutral symptom descriptions a non-expert would give. Don't include diagnostic guesses in the manifest.",
+    "exif": "EXIF is stripped by canvas re-encoding in the live app, so fixture EXIF doesn't matter for accuracy. Strip it anyway if sharing the set publicly.",
+    "callProFixtures": "Critical safety check: every gas/sealed-refrigeration/electrical-hazard fixture should have expected.callPro: true and the scorer verifies the LLM matched."
+  }
+}
