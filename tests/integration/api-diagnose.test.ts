@@ -50,13 +50,35 @@ const baseEvent = (request: Request, kv: KVNamespace) => ({
       DAILY_CAP_PER_IP: '50',
       MAX_OUTPUT_TOKENS: '2000',
       TURNSTILE_SITE_KEY: 'site',
-      TURNSTILE_SECRET_KEY: 'secret'
+      TURNSTILE_SECRET_KEY: 'secret',
+      HASH_SALT: 'test-salt'
     }
   },
   getClientAddress: () => '1.2.3.4'
 } as any);
 
 describe('POST /api/diagnose (appliance)', () => {
+  it('returns 401 when Turnstile fails', async () => {
+    global.fetch = vi.fn(async (url: any) => {
+      if (String(url).includes('turnstile')) return new Response(JSON.stringify({ success: false }));
+      throw new Error('unexpected fetch');
+    }) as any;
+
+    const fd = makeFormData({ photo: new Blob(['x'], { type: 'image/jpeg' }) });
+    const res = await POST(baseEvent(makeRequest(fd), makeKvMock()));
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 400 when photo missing', async () => {
+    global.fetch = vi.fn(async (url: any) => {
+      if (String(url).includes('turnstile')) return new Response(JSON.stringify({ success: true }));
+      throw new Error('unexpected fetch');
+    }) as any;
+    const fd = makeFormData({});
+    const res = await POST(baseEvent(makeRequest(fd), makeKvMock()));
+    expect(res.status).toBe(400);
+  });
+
   it('returns 200 + id on happy path with all optional fields', async () => {
     global.fetch = vi.fn(async (url: any) => {
       const u = String(url);
