@@ -42,6 +42,9 @@
 
 <PageHeader>Appliance Troubleshooter</PageHeader>
 
+<p class="text-xs text-muted mb-2">
+  Model-generated diagnosis — verify before acting, especially on gas, electrical, or water work.
+</p>
 <p class="text-muted text-sm mb-6">This is a static example, not a real diagnosis.</p>
 
 <section class="mb-6">

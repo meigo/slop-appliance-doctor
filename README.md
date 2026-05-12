@@ -2,6 +2,8 @@
 
 Public, free, mobile-first web app: photo of a malfunctioning home appliance + a few words of context → structured diagnosis with appliance ID, ranked failure modes, DIY recovery steps with difficulty levels, "call a pro" recommendation when warranted, parts list, alternatives, and verification checks.
 
+**Diagnoses are model-generated and can be wrong.** Confidence percentages reflect the model's own estimate, not certainty. Treat the output as a starting point and verify before acting — especially on anything involving gas, electrical, or water work, where the cost of being wrong is meaningful.
+
 Second instance of the **Vision-LLM as Ambient Domain Expert** pattern (see `docs/superpowers/specs/2026-05-11-appliance-troubleshooter-design.md`). Plant Doctor was the first; the pattern + scaffolding compound across instances.
 
 ![Demo](./demo.gif)
