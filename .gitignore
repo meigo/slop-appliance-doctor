@@ -24,8 +24,8 @@ vite.config.ts.timestamp-*
 
 # Project-specific
 .dev.vars
-tests/fixtures/plant-photos/*
-!tests/fixtures/plant-photos/.gitignore
+tests/fixtures/appliance-photos/*
+!tests/fixtures/appliance-photos/.gitignore
 quality-reports/
 
 # Playwright output
