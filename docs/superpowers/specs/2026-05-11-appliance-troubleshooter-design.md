@@ -1,11 +1,9 @@
 # Appliance Troubleshooter v1 Design
 
 **Date:** 2026-05-11
-**Status:** Brainstorming → ready for writing-plans
-**Project repo (planned):** `../slop-appliance-doctor/` (not yet bootstrapped)
-**Vetted entry:** `VETTED.md` → Appliance Troubleshooter
+**Status:** Shipped (deployed 2026-05-12 at https://slop-appliance-doctor.meigo.workers.dev/)
 **Follows pattern:** Vision-LLM as Ambient Domain Expert (2nd instance — Plant Doctor was 1st)
-**Reference implementation:** `../slop-plant-doctor/` (most architecture and infrastructure is reused; only the appliance-specific deltas are detailed here)
+**Reference implementation:** sibling Plant Doctor repo (most architecture and infrastructure is reused; only the appliance-specific deltas are detailed here)
 
 ## Summary
 
@@ -21,7 +19,7 @@ The goal of v1 is to test whether the Vision-LLM as Ambient Domain Expert patter
 
 ## Context
 
-This is the second instance of the Vision-LLM as Ambient Domain Expert pattern (see `VETTED.md`). Plant Doctor shipped 2026-05-11 (see `2026-05-11-plant-doctor-design.md` + the deployed app at https://slop-plant-doctor.meigo.workers.dev/). Appliance Troubleshooter is the second instance picked because:
+This is the second instance of the Vision-LLM as Ambient Domain Expert pattern. Plant Doctor shipped 2026-05-11 (see `2026-05-11-plant-doctor-design.md` + the deployed app at https://slop-plant-doctor.meigo.workers.dev/). Appliance Troubleshooter is the second instance picked because:
 
 - **Strongest business case** of the five vetted instances ($150 service-call avoidance, B2B home-warranty insurer angle, parts affiliate revenue, willingness-to-pay precedent in adjacent products).
 - **Open reference data ready** (iFixit's CC-licensed content, university repair-manual references) — though v1 uses a hand-curated subset rather than full RAG (see "Reference Data" section for rationale).
@@ -53,7 +51,7 @@ This is the second instance of the Vision-LLM as Ambient Domain Expert pattern (
 - Real-time parts pricing lookup (Repair Clinic / Amazon API)
 - BYOK
 - Native mobile app
-- **i18n** — UI is hardcoded English; system prompt is English. See cross-cutting i18n note in `VETTED.md` for the v2 expansion pattern.
+- **i18n** — UI is hardcoded English; system prompt is English. v2 expansion pattern: visible language selector (defaults to `navigator.language`, persisted in localStorage), `lang` parameter sent to API, system prompt instructs the model to respond in that language. Scientific names stay canonical.
 
 ## Architecture
 

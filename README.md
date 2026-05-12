@@ -34,13 +34,10 @@ npm run quality            # manual quality runner against the fixture set (requ
 
 ## Deploy
 
-See `docs/superpowers/plans/2026-05-11-appliance-troubleshooter.md` Tasks 15–16.
-
-Summary:
 1. `wrangler kv namespace create slop-appliance-doctor-DIAGNOSES` → update `wrangler.toml` with the namespace IDs
 2. Get real Turnstile site + secret keys from CF dashboard
-3. Put real site key in `.env`
-4. `wrangler secret put OPENROUTER_API_KEY` and `TURNSTILE_SECRET_KEY`
+3. Put real site key in `.env` (`PUBLIC_TURNSTILE_SITE_KEY=...`)
+4. `wrangler secret put OPENROUTER_API_KEY` and `wrangler secret put TURNSTILE_SECRET_KEY`
 5. `npm run build && npx wrangler deploy`
 
 ## Cost controls
@@ -64,5 +61,4 @@ Tailwind v4 + Lucide icons + IBM Plex Mono. Dark default with a sun/moon toggle 
 ## Docs
 
 - Design spec: `docs/superpowers/specs/2026-05-11-appliance-troubleshooter-design.md`
-- Implementation plan: `docs/superpowers/plans/2026-05-11-appliance-troubleshooter.md`
 - Pattern + sibling instances: tracked in a private idea-management repo
