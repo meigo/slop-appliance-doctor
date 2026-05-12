@@ -26,6 +26,7 @@ vite.config.ts.timestamp-*
 .dev.vars
 tests/fixtures/appliance-photos/*
 !tests/fixtures/appliance-photos/.gitignore
+!tests/fixtures/appliance-photos/demo-fixture.jpg
 quality-reports/
 
 # Playwright output
@@ -42,3 +43,4 @@ playwright-report/
 coverage/
 
 /temp/
+scripts/demo-output/
