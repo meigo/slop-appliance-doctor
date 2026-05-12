@@ -6,7 +6,7 @@ Second instance of the **Vision-LLM as Ambient Domain Expert** pattern (see `doc
 
 ## Stack
 
-SvelteKit (Svelte 5) + TypeScript on Cloudflare Workers + Static Assets. OpenRouter (default Qwen2.5-VL 72B) for diagnosis. KV for result persistence. Turnstile for abuse protection. Light hand-curated reference data table (~34 failure modes across 5 categories) injected into the system prompt. Tailwind v4 + Lucide + IBM Plex Mono with dark-default theme via the shared style system (see `../slop-ideas/STYLE.md`). No DB, no accounts, no image storage.
+SvelteKit (Svelte 5) + TypeScript on Cloudflare Workers + Static Assets. OpenRouter (default Qwen2.5-VL 72B) for diagnosis. KV for result persistence. Turnstile for abuse protection. Light hand-curated reference data table (~34 failure modes across 5 categories) injected into the system prompt. Tailwind v4 + Lucide + IBM Plex Mono with dark-default theme. No DB, no accounts, no image storage.
 
 ## Dev
 
@@ -59,10 +59,10 @@ When the global cap is hit, the API returns 503 until the next UTC day.
 
 ## Style system
 
-This repo follows the shared style system documented in `../slop-ideas/STYLE.md`. Full design spec: `../slop-ideas/docs/superpowers/specs/2026-05-11-shared-style-system-design.md`.
+Tailwind v4 + Lucide icons + IBM Plex Mono. Dark default with a sun/moon toggle (persisted in `localStorage`). Mono + functional accents palette: grayscale base, red/amber/green only for semantic signals (danger / warning / success). Component primitives in `src/lib/components/` (`ThemeToggle`, `PageHeader`, `Pill`, `Callout`) and theme tokens in `src/app.css`.
 
 ## Docs
 
 - Design spec: `docs/superpowers/specs/2026-05-11-appliance-troubleshooter-design.md`
 - Implementation plan: `docs/superpowers/plans/2026-05-11-appliance-troubleshooter.md`
-- Pattern + sibling instances: `../slop-ideas/VETTED.md`
+- Pattern + sibling instances: tracked in a private idea-management repo
