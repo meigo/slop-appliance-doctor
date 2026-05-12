@@ -17,13 +17,13 @@ const RecoveryStepSchema = z.object({
 const RecoverySchema = z.object({
   diy: z.array(RecoveryStepSchema),
   callPro: z.boolean(),
-  proReason: z.string().optional()
+  proReason: z.string().nullish()
 });
 
 const PartSchema = z.object({
   name: z.string().min(1),
-  partNumber: z.string().optional(),
-  typicalCostUsd: z.string().optional()
+  partNumber: z.string().nullish(),
+  typicalCostUsd: z.string().nullish()
 });
 
 const PrimaryDiagnosisSchema = z.object({
